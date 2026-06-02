@@ -227,4 +227,4 @@ curl -X POST http://localhost:8080/predict \
 Senior Software Engineer | Healthcare Payer | Azure AI
 
 [GitHub](https://github.com/AlgoNester) •
-[LinkedIn](https://linkedin.com/in/yourprofile)
+[LinkedIn](linkedin.com/in/karunakar-b-reddy-437556413)
