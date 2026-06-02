@@ -218,20 +218,6 @@ curl -X POST http://localhost:8080/predict \
 
 ---
 
-## How to Talk About This in Interviews
-
-This project demonstrates three things relevant to enterprise healthcare:
-
-1. **Azure OpenAI Integration** — calling GPT models from a Spring Boot
-   service with structured prompts and parsing structured JSON responses
-
-2. **Healthcare Domain Awareness** — understanding of clinical parameters
-   (glucose, BMI, insulin, blood pressure) and their relevance to
-   diabetes risk assessment
-
-3. **AI-Assisted Architecture Pattern** — using LLMs not as chatbots but
-   as reasoning engines embedded in a REST API workflow — a pattern
-   increasingly common in modern healthcare applications
 
 ---
 
