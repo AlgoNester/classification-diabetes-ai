@@ -1,7 +1,7 @@
 # Diabetes Risk Classification — Spring Boot + Azure OpenAI
 
 A Spring Boot REST API POC that classifies diabetes risk from patient
-health data using Azure OpenAI GPT-4o-mini as the AI reasoning engine.
+health data using Azure OpenAI GPT-5-mini as the AI reasoning engine.
 
 > **Demonstrates:** Java Spring Boot · Azure OpenAI Integration ·
 > Healthcare Domain · REST API Design · AI-Powered Clinical POC
@@ -38,7 +38,7 @@ Spring Boot REST API
      │  BMI Calculation
      │  Prompt Engineering
      ▼
-Azure OpenAI (GPT-4o-mini)
+Azure OpenAI (GPT-5-mini)
      │
      │  Structured JSON Response
      ▼
@@ -55,16 +55,16 @@ Client Response (patientProfile + diabetesRisk)
 | Layer | Technology |
 |---|---|
 | Language | Java 17 |
-| Framework | Spring Boot 3.3.x |
-| AI Service | Azure OpenAI (GPT-4o-mini) |
-| HTTP Client | Spring RestClient (Spring 6.1+) |
+| Framework | Spring Boot 3.5.6 |
+| AI Service | Azure OpenAI (GPT-5-mini) |
+| HTTP Client | Spring RestTemplate |
 | Build Tool | Maven |
 
 ---
 
 ## API Reference
 
-### POST `/predict`
+### POST `/api/diabetes/predict`
 
 Accepts patient health data and returns diabetes risk classification.
 
@@ -104,8 +104,7 @@ Accepts patient health data and returns diabetes risk classification.
   "diabetesRisk": {
     "riskLevel": "High",
     "probability": 0.78
-  },
-  "disclaimer": "AI-generated estimate for informational purposes only. Not a medical diagnosis."
+  }
 }
 ```
 
@@ -122,18 +121,13 @@ Accepts patient health data and returns diabetes risk classification.
 The service constructs a structured clinical prompt sent to Azure OpenAI:
 
 ```
-You are a clinical decision support assistant.
-Given the following patient data:
-- Age: {age} years
-- BMI: {bmi} (calculated from height/weight)
-- Fasting Glucose: {glucose} mg/dL
-- Blood Pressure: {bloodPressure} mmHg
-- Insulin: {insulin} µU/mL
-
-Assess this patient's diabetes risk.
-Return ONLY valid JSON in this exact format, no explanation:
-{"riskLevel": "Low|Medium|High", "probability": 0.0-1.0}
+Classify diabetes risk based on patient data: {patientDataMap}.
+Return JSON: {"riskLevel": "Low|Medium|High", "probability": 0.0-1.0}
 ```
+
+The patient data (including auto-calculated BMI) is serialized as a map and
+embedded directly in the prompt. The model returns a structured JSON risk
+assessment that is parsed and combined with the patient profile.
 
 ---
 
@@ -148,14 +142,12 @@ patientData.setBmi(Math.round(bmi * 100.0) / 100.0);
 ```
 
 **Azure OpenAI Call:**
-Uses Spring `RestClient` (Spring 6.1+) injected as a `@Bean`:
+Uses Spring `RestTemplate` to call the Azure OpenAI Chat Completions API:
 ```java
-String response = restClient.post()
-    .uri("/openai/deployments/{model}/chat/completions?api-version=2024-02-01",
-         deploymentName)
-    .body(requestBody)
-    .retrieve()
-    .body(String.class);
+RestTemplate restTemplate = new RestTemplate();
+String url = endpoint + "/openai/deployments/" + deploymentName
+    + "/chat/completions?api-version=2023-05-15";
+String rawResponse = restTemplate.postForObject(url, entity, String.class);
 ```
 
 ---
@@ -165,7 +157,7 @@ String response = restClient.post()
 ### Prerequisites
 - Java 17+
 - Maven 3.8+
-- Azure account with OpenAI resource and GPT-4o-mini deployment
+- Azure account with OpenAI resource and GPT-5-mini deployment
 
 ### Configuration
 
@@ -178,8 +170,8 @@ cp src/main/resources/application.properties.example \
 ```properties
 # application.properties
 azure.openai.endpoint=https://your-resource.openai.azure.com/
-azure.openai.api-key=your-api-key-here
-azure.openai.deployment-name=gpt-4o-mini
+azure.openai.key=your-api-key-here
+azure.openai.deployment=gpt-5-mini
 ```
 
 ### Run
@@ -189,7 +181,7 @@ azure.openai.deployment-name=gpt-4o-mini
 
 ### Test
 ```bash
-curl -X POST http://localhost:8080/predict \
+curl -X POST http://localhost:8080/api/diabetes/predict \
   -H "Content-Type: application/json" \
   -d '{
     "age": 50,
@@ -207,7 +199,7 @@ curl -X POST http://localhost:8080/predict \
 
 | Feature | Status |
 |---|---|
-| POST `/predict` endpoint | ✅ Complete |
+| POST `/api/diabetes/predict` endpoint | ✅ Complete |
 | BMI auto-calculation | ✅ Complete |
 | Azure OpenAI integration | ✅ Complete |
 | Structured prompt engineering | ✅ Complete |
